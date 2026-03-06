@@ -53,8 +53,8 @@ enum ParamID
 #define CELLULOSE_IRREGULARITY_MAX      0.2f
 #define CELLULOSE_IRREGULARITY_DEFAULT  0.2f
 
-// Edge Sensitivity: Sobel magnitude threshold [0 = detect everything, 1 = only strong edges]
-#define CELLULOSE_EDGE_SENSITIVITY_MIN      0.0f
+// Edge Sensitivity: Sobel magnitude threshold [-10 = force all pixels, 0 = detect everything, 1 = only strong edges]
+#define CELLULOSE_EDGE_SENSITIVITY_MIN      -10.0f
 #define CELLULOSE_EDGE_SENSITIVITY_MAX      2.0f
 #define CELLULOSE_EDGE_SENSITIVITY_DEFAULT  0.2f
 

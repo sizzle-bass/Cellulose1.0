@@ -103,7 +103,7 @@ Four sequential passes per frame:
 ## Installation
 
 ### Windows
-1. Download `Cellulose.aex` from the [Releases](../../releases) page
+1. Download `Cellulose.aex` from this repository
 2. Copy it to:
    ```
    C:\Program Files\Adobe\Adobe After Effects <version>\Support Files\Plug-ins\
@@ -111,7 +111,7 @@ Four sequential passes per frame:
 3. Restart After Effects — find the effect under **Effect > Cellulose > Cellulose**
 
 ### macOS
-1. Download `Cellulose.plugin` from the [Releases](../../releases) page
+1. Download `Cellulose.plugin` from this repository
 2. Copy it to:
    ```
    /Library/Application Support/Adobe/Common/Plug-ins/7.0/MediaCore/
