@@ -1,0 +1,24 @@
+# Build output
+build/
+build_output.txt
+*.aex
+*.lib
+*.exp
+*.obj
+*.pdb
+*.ilk
+
+# Adobe AE SDK (download separately — see README)
+sdk/
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+
+# macOS
+.DS_Store
