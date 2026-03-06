@@ -100,83 +100,57 @@ Four sequential passes per frame:
 
 ---
 
-## Prerequisites
-
-### All Platforms
-- CMake 3.20 or newer
-- Adobe After Effects SDK
+## Installation
 
 ### Windows
-- Visual Studio 2019 or 2022 (MSVC) with C++17
-- CUDA Toolkit 12.x (for GPU path; CPU-only builds work without it)
+1. Download `Cellulose.aex` from the [Releases](../../releases) page
+2. Copy it to:
+   ```
+   C:\Program Files\Adobe\Adobe After Effects <version>\Support Files\Plug-ins\
+   ```
+3. Restart After Effects — find the effect under **Effect > Cellulose > Cellulose**
 
 ### macOS
-- Xcode 15+ with Command Line Tools
-- macOS 13 Ventura or newer
+1. Download `Cellulose.plugin` from the [Releases](../../releases) page
+2. Copy it to:
+   ```
+   /Library/Application Support/Adobe/Common/Plug-ins/7.0/MediaCore/
+   ```
+3. Restart After Effects — find the effect under **Effect > Cellulose > Cellulose**
+
+> The plugin also works in Premiere Pro — no separate installation needed, the same file covers both applications.
 
 ---
 
-## Setup
+## Building from Source
 
-### 1. Obtain the Adobe After Effects SDK
+Only needed if you want to modify the plugin or build for macOS.
 
-1. Sign in at [Adobe Developer](https://developer.adobe.com/after-effects/)
-2. Download the **After Effects SDK** for your platform
-3. Extract the archive and place the contents inside the `sdk/` directory of this project:
+### Prerequisites
 
-   ```
-   Cellulose/sdk/
-   ├── Headers/
-   ├── Resources/
-   ├── Examples/
-   └── ...
-   ```
+**All platforms:** CMake 3.20+, Adobe After Effects SDK
 
-### 2. Configure and Build
+**Windows:** Visual Studio 2019 or 2022 (C++17), CUDA Toolkit 12.x (optional, for GPU path)
 
-#### Windows (CPU only)
-```bat
-cmake -B build -DAESDK_ROOT=./sdk -DCELLULOSE_ENABLE_CUDA=OFF
-cmake --build build --config Release
-```
+**macOS:** Xcode 15+, macOS 13 Ventura or newer
 
-#### Windows (CUDA + CPU)
-```bat
+### Build
+
+```bash
+# Windows (CUDA)
 cmake -B build -DAESDK_ROOT=./sdk -DCELLULOSE_ENABLE_CUDA=ON
 cmake --build build --config Release
-```
 
-#### macOS (Metal + CPU)
-```bash
+# Windows (CPU only)
+cmake -B build -DAESDK_ROOT=./sdk -DCELLULOSE_ENABLE_CUDA=OFF
+cmake --build build --config Release
+
+# macOS
 cmake -B build -DAESDK_ROOT=./sdk -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
 
-Output:
-- Windows: `build/Release/Cellulose.aex`
-- macOS: `build/Cellulose.plugin`
-
----
-
-## Installation
-
-### After Effects — Windows
-Copy `Cellulose.aex` to:
-```
-C:\Program Files\Adobe\Adobe After Effects <version>\Support Files\Plug-ins\
-```
-
-### After Effects — macOS
-Copy `Cellulose.plugin` to:
-```
-/Library/Application Support/Adobe/Common/Plug-ins/7.0/MediaCore/
-```
-
-### Premiere Pro
-The same `.aex` / `.plugin` works in Premiere Pro. On macOS, the shared MediaCore path above covers both applications. On Windows, copy to:
-```
-C:\Program Files\Adobe\Adobe Premiere Pro <version>\Plug-ins\Common\
-```
+Output: `build/Release/Cellulose.aex` (Windows) or `build/Cellulose.plugin` (macOS)
 
 ---
 
