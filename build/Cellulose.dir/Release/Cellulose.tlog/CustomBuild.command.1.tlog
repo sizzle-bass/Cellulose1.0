@@ -1,0 +1,40 @@
+^D:\CLAUDE SANDBOX\CELLULOSE\BUILD\CMAKEFILES\A73285FF40FE07BA21CE198D7C98E191\CELLULOSEPIPL.RR.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-DCXX_COMPILER=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" "-DSDK_INC=D:/Claude Sandbox/Cellulose/sdk/AfterEffectsSDK_25.6_61_win/ae25.6_61.64bit.AfterEffectsSDK/Examples/Headers" "-DINPUT=D:/Claude Sandbox/Cellulose/src/Cellulose.r" "-DOUTPUT=D:/Claude Sandbox/Cellulose/build/CellulosePiPL.rr" -P "D:/Claude Sandbox/Cellulose/cmake/PreprocessR.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\CLAUDE SANDBOX\CELLULOSE\BUILD\CMAKEFILES\A73285FF40FE07BA21CE198D7C98E191\CELLULOSEPIPL.RRC.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-DTOOL=D:/Claude Sandbox/Cellulose/sdk/AfterEffectsSDK_25.6_61_win/ae25.6_61.64bit.AfterEffectsSDK/Examples/Resources/PiPLtool.exe" "-DINPUT=D:/Claude Sandbox/Cellulose/build/CellulosePiPL.rr" "-DOUTPUT=D:/Claude Sandbox/Cellulose/build/CellulosePiPL.rrc" -P "D:/Claude Sandbox/Cellulose/cmake/RunPiPLtool.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\CLAUDE SANDBOX\CELLULOSE\BUILD\CMAKEFILES\A73285FF40FE07BA21CE198D7C98E191\CELLULOSEPIPL.RC.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-DCXX_COMPILER=C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" "-DSDK_INC=D:/Claude Sandbox/Cellulose/sdk/AfterEffectsSDK_25.6_61_win/ae25.6_61.64bit.AfterEffectsSDK/Examples/Headers" "-DINPUT=D:/Claude Sandbox/Cellulose/build/CellulosePiPL.rrc" "-DOUTPUT=D:/Claude Sandbox/Cellulose/build/CellulosePiPL.rc" -DDEFINES=MSWindows -P "D:/Claude Sandbox/Cellulose/cmake/PreprocessR.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\CLAUDE SANDBOX\CELLULOSE\CMAKELISTS.TXT
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SD:/Claude Sandbox/Cellulose" "-BD:/Claude Sandbox/Cellulose/build" --check-stamp-file "D:/Claude Sandbox/Cellulose/build/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

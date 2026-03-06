@@ -1,0 +1,10 @@
+^D:\CLAUDE SANDBOX\CELLULOSE\BUILD\CMAKEFILES\70DC8796FC84A71C4AD2C3E06321763D\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SD:/Claude Sandbox/Cellulose" "-BD:/Claude Sandbox/Cellulose/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Claude Sandbox/Cellulose/build/Cellulose.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

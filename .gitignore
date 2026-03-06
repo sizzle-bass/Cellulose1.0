@@ -1,7 +1,5 @@
 # Build output
-build/
 build_output.txt
-*.aex
 *.lib
 *.exp
 *.obj
