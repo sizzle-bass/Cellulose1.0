@@ -317,18 +317,38 @@ static void RenderTyped(
         }
     });
 
-    // --- Film jitter: deterministic per-frame whole-gate displacement ---
+    // --- Film jitter: smooth Catmull-Rom interpolation between random keypoints ---
+    // Keypoints are spaced JITTER_STRIDE frames apart; four surrounding keypoints
+    // are sampled and interpolated so the frame-to-frame motion is C1-continuous.
     float jitterX = 0.0f, jitterY = 0.0f;
     if (p.canvasJitter > 0.0f)
     {
-        uint32_t h = static_cast<uint32_t>(p.currentFrame) * 2654435761u;
-        h ^= h >> 16;
-        h *= 0x45d9f3bu;
-        h ^= h >> 16;
-        jitterX = (static_cast<float>(h >> 16) / 32767.5f - 1.0f) * p.canvasJitter;
-        h *= 2246822519u;
-        h ^= h >> 13;
-        jitterY = (static_cast<float>(h >> 16) / 32767.5f - 1.0f) * p.canvasJitter * 0.15f;
+        // Hash a (keyframe index, channel seed) pair → [-1, 1]
+        auto hashKF = [](int kf, uint32_t seed) -> float {
+            uint32_t h = (static_cast<uint32_t>(kf) ^ seed) * 2654435761u;
+            h ^= h >> 16;
+            h *= 0x45d9f3bu;
+            h ^= h >> 16;
+            return static_cast<float>(h >> 16) / 32767.5f - 1.0f;
+        };
+
+        // Catmull-Rom basis: interpolate p1..p2, t in [0,1], using p0 and p3 as tangent guides
+        auto catmullRom = [](float p0, float p1, float p2, float p3, float t) -> float {
+            float t2 = t * t, t3 = t2 * t;
+            return 0.5f * ((2.0f * p1)
+                + (-p0 + p2) * t
+                + (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2
+                + (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3);
+        };
+
+        const int JITTER_STRIDE = 6; // keypoint spacing in frames
+        int   kf = p.currentFrame / JITTER_STRIDE;
+        float t  = static_cast<float>(p.currentFrame % JITTER_STRIDE) / static_cast<float>(JITTER_STRIDE);
+
+        jitterX = catmullRom(hashKF(kf - 1, 0u), hashKF(kf, 0u),
+                             hashKF(kf + 1, 0u), hashKF(kf + 2, 0u), t) * p.canvasJitter;
+        jitterY = catmullRom(hashKF(kf - 1, 1u), hashKF(kf, 1u),
+                             hashKF(kf + 1, 1u), hashKF(kf + 2, 1u), t) * p.canvasJitter * 0.15f;
     }
 
     // --- Passes 2-5 per pixel (parallel over rows) ---

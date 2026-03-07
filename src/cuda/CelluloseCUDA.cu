@@ -352,18 +352,35 @@ PF_Err CelluloseCUDA::Render(
 {
     int W = cp.width, H = cp.height;
 
-    // Pre-compute per-frame canvas jitter on the host (same value for all threads)
+    // Pre-compute per-frame canvas jitter on the host (same value for all threads).
+    // Uses Catmull-Rom interpolation between random keypoints for smooth, organic motion.
     float jitterX = 0.0f, jitterY = 0.0f;
     if (cp.canvasJitter > 0.0f)
     {
-        uint32_t h = static_cast<uint32_t>(cp.currentFrame) * 2654435761u;
-        h ^= h >> 16;
-        h *= 0x45d9f3bu;
-        h ^= h >> 16;
-        jitterX = (static_cast<float>(h >> 16) / 32767.5f - 1.0f) * cp.canvasJitter;
-        h *= 2246822519u;
-        h ^= h >> 13;
-        jitterY = (static_cast<float>(h >> 16) / 32767.5f - 1.0f) * cp.canvasJitter * 0.15f;
+        auto hashKF = [](int kf, uint32_t seed) -> float {
+            uint32_t h = (static_cast<uint32_t>(kf) ^ seed) * 2654435761u;
+            h ^= h >> 16;
+            h *= 0x45d9f3bu;
+            h ^= h >> 16;
+            return static_cast<float>(h >> 16) / 32767.5f - 1.0f;
+        };
+
+        auto catmullRom = [](float p0, float p1, float p2, float p3, float t) -> float {
+            float t2 = t * t, t3 = t2 * t;
+            return 0.5f * ((2.0f * p1)
+                + (-p0 + p2) * t
+                + (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2
+                + (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3);
+        };
+
+        const int JITTER_STRIDE = 6;
+        int   kf = cp.currentFrame / JITTER_STRIDE;
+        float t  = static_cast<float>(cp.currentFrame % JITTER_STRIDE) / static_cast<float>(JITTER_STRIDE);
+
+        jitterX = catmullRom(hashKF(kf - 1, 0u), hashKF(kf, 0u),
+                             hashKF(kf + 1, 0u), hashKF(kf + 2, 0u), t) * cp.canvasJitter;
+        jitterY = catmullRom(hashKF(kf - 1, 1u), hashKF(kf, 1u),
+                             hashKF(kf + 1, 1u), hashKF(kf + 2, 1u), t) * cp.canvasJitter * 0.15f;
     }
 
     // When AE calls with CUDA framework, world->data contains CUDA device pointers
