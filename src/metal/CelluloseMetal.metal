@@ -25,6 +25,9 @@ struct Uniforms
     float edgeBlur;
     float canvasJitter;
     float currentTime;
+    float crushBlacks;
+    float vibrance;
+    float vibranceFocus;
 };
 
 // ---------------------------------------------------------------------------
@@ -227,6 +230,7 @@ kernel void cellulose_main(
         jitterY = ((float)(h >> 16) / 32767.5f - 1.0f) * u.canvasJitter * 0.15f;
     }
 
+
     float srcU = (float)gid.x + jitterX;
     float srcV = (float)gid.y + jitterY;
 
@@ -275,11 +279,10 @@ kernel void cellulose_main(
         }
         if (weight > 0.0f)
         {
-            float b = u.colourBleed;
-            result.x = result.x*(1-b) + (sumR/weight)*b;
-            result.y = result.y*(1-b) + (sumG/weight)*b;
-            result.z = result.z*(1-b) + (sumB/weight)*b;
-            result.w = result.w*(1-b) + (sumA/weight)*b;
+            result.x = result.x*(1-u.colourBleed) + (sumR/weight)*u.colourBleed;
+            result.y = result.y*(1-u.colourBleed) + (sumG/weight)*u.colourBleed;
+            result.z = result.z*(1-u.colourBleed) + (sumB/weight)*u.colourBleed;
+            result.w = result.w*(1-u.colourBleed) + (sumA/weight)*u.colourBleed;
         }
     }
 
@@ -311,6 +314,30 @@ kernel void cellulose_main(
             result.z = result.z*(1-blend) + (sumB/totalW)*blend;
             result.w = result.w*(1-blend) + (sumA/totalW)*blend;
         }
+    }
+
+    // Post-process: crush blacks
+    if (u.crushBlacks > 0.0f)
+    {
+        float lum = 0.299f*result.x + 0.587f*result.y + 0.114f*result.z;
+        float shadowWeight = (1.0f - lum) * (1.0f - lum);
+        float crush = max(0.0f, 1.0f - u.crushBlacks * shadowWeight);
+        result.x *= crush;
+        result.y *= crush;
+        result.z *= crush;
+    }
+
+    // Post-process: vibrance — boost saturation to counter milky cast
+    if (u.vibrance > 0.0f)
+    {
+        float lum    = 0.299f*result.x + 0.587f*result.y + 0.114f*result.z;
+        float chroma = max(max(result.x, result.y), result.z)
+                     - min(min(result.x, result.y), result.z);
+        float boost  = 1.0f - chroma * u.vibranceFocus;
+        float sat    = 1.0f + u.vibrance * boost;
+        result.x = clamp(lum + (result.x - lum) * sat, 0.0f, 1.0f);
+        result.y = clamp(lum + (result.y - lum) * sat, 0.0f, 1.0f);
+        result.z = clamp(lum + (result.z - lum) * sat, 0.0f, 1.0f);
     }
 
     dst[gid.y*W + gid.x] = result;

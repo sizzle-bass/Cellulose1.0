@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <execution>
 
-
 // ---------------------------------------------------------------------------
 // 3D Simplex Noise — Stefan Gustavson, public domain
 // Adapted for plain C++ (no GLSL built-ins).
@@ -407,11 +406,10 @@ static void RenderTyped(
 
                 if (weight > 0.0f)
                 {
-                    float bleed = p.colourBleed;
-                    displaced.r = displaced.r * (1-bleed) + (sumR/weight) * bleed;
-                    displaced.g = displaced.g * (1-bleed) + (sumG/weight) * bleed;
-                    displaced.b = displaced.b * (1-bleed) + (sumB/weight) * bleed;
-                    displaced.a = displaced.a * (1-bleed) + (sumA/weight) * bleed;
+                    displaced.r = displaced.r * (1-p.colourBleed) + (sumR/weight) * p.colourBleed;
+                    displaced.g = displaced.g * (1-p.colourBleed) + (sumG/weight) * p.colourBleed;
+                    displaced.b = displaced.b * (1-p.colourBleed) + (sumB/weight) * p.colourBleed;
+                    displaced.a = displaced.a * (1-p.colourBleed) + (sumA/weight) * p.colourBleed;
                 }
             }
 
@@ -444,6 +442,30 @@ static void RenderTyped(
                     displaced.b = displaced.b * (1-blend) + (sumB/totalW) * blend;
                     displaced.a = displaced.a * (1-blend) + (sumA/totalW) * blend;
                 }
+            }
+
+            // Post-process: crush blacks — deepen shadows quadratically
+            if (p.crushBlacks > 0.0f)
+            {
+                float lum = 0.299f*displaced.r + 0.587f*displaced.g + 0.114f*displaced.b;
+                float shadowWeight = (1.0f - lum) * (1.0f - lum);
+                float crush = std::max(0.0f, 1.0f - p.crushBlacks * shadowWeight);
+                displaced.r *= crush;
+                displaced.g *= crush;
+                displaced.b *= crush;
+            }
+
+            // Post-process: vibrance — boost saturation to counter milky cast
+            if (p.vibrance > 0.0f)
+            {
+                float lum    = 0.299f*displaced.r + 0.587f*displaced.g + 0.114f*displaced.b;
+                float chroma = std::max({displaced.r, displaced.g, displaced.b})
+                             - std::min({displaced.r, displaced.g, displaced.b});
+                float boost  = 1.0f - chroma * p.vibranceFocus;
+                float sat    = 1.0f + p.vibrance * boost;
+                displaced.r = std::clamp(lum + (displaced.r - lum) * sat, 0.0f, 1.0f);
+                displaced.g = std::clamp(lum + (displaced.g - lum) * sat, 0.0f, 1.0f);
+                displaced.b = std::clamp(lum + (displaced.b - lum) * sat, 0.0f, 1.0f);
             }
 
             // Write output

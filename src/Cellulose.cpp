@@ -10,6 +10,7 @@
 #include "CelluloseCPU.h"
 #include "CelluloseGPU.h"
 
+
 // ---------------------------------------------------------------------------
 // About
 // ---------------------------------------------------------------------------
@@ -98,6 +99,21 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data,
         CELLULOSE_EDGE_BLUR_MIN, CELLULOSE_EDGE_BLUR_MAX,
         CELLULOSE_EDGE_BLUR_DEFAULT);
 
+    ADD_FLOAT_SLIDER(PARAM_CRUSH_BLACKS,
+        CELLULOSE_PARAM_CRUSH_BLACKS_NAME,
+        CELLULOSE_CRUSH_BLACKS_MIN, CELLULOSE_CRUSH_BLACKS_MAX,
+        CELLULOSE_CRUSH_BLACKS_DEFAULT);
+
+    ADD_FLOAT_SLIDER(PARAM_VIBRANCE,
+        CELLULOSE_PARAM_VIBRANCE_NAME,
+        CELLULOSE_VIBRANCE_MIN, CELLULOSE_VIBRANCE_MAX,
+        CELLULOSE_VIBRANCE_DEFAULT);
+
+    ADD_FLOAT_SLIDER(PARAM_VIBRANCE_FOCUS,
+        CELLULOSE_PARAM_VIBRANCE_FOCUS_NAME,
+        CELLULOSE_VIBRANCE_FOCUS_MIN, CELLULOSE_VIBRANCE_FOCUS_MAX,
+        CELLULOSE_VIBRANCE_FOCUS_DEFAULT);
+
 #undef ADD_FLOAT_SLIDER
 
     out_data->num_params = PARAM_COUNT;
@@ -106,22 +122,16 @@ static PF_Err ParamsSetup(PF_InData* in_data, PF_OutData* out_data,
 
 // ---------------------------------------------------------------------------
 // Helper: checkout all params into a CelluloseParams struct.
-// Caller must PF_CHECKIN_PARAM all five defs afterward.
+// Caller must PF_CHECKIN_PARAM all defs afterward.
 // ---------------------------------------------------------------------------
 static PF_Err CheckoutParams(
     PF_InData*      in_data,
-    PF_ParamDef     (&defs)[7],          // 7 float params
+    PF_ParamDef     (&defs)[10],
     CelluloseParams& out_cp)
 {
     PF_Err err = PF_Err_NONE;
 
-    AEFX_CLR_STRUCT(defs[0]);
-    AEFX_CLR_STRUCT(defs[1]);
-    AEFX_CLR_STRUCT(defs[2]);
-    AEFX_CLR_STRUCT(defs[3]);
-    AEFX_CLR_STRUCT(defs[4]);
-    AEFX_CLR_STRUCT(defs[5]);
-    AEFX_CLR_STRUCT(defs[6]);
+    for (int i = 0; i < 10; ++i) AEFX_CLR_STRUCT(defs[i]);
 
     ERR(PF_CHECKOUT_PARAM(in_data, PARAM_AMPLITUDE,
         in_data->current_time, in_data->time_step, in_data->time_scale, &defs[0]));
@@ -137,6 +147,12 @@ static PF_Err CheckoutParams(
         in_data->current_time, in_data->time_step, in_data->time_scale, &defs[5]));
     ERR(PF_CHECKOUT_PARAM(in_data, PARAM_EDGE_BLUR,
         in_data->current_time, in_data->time_step, in_data->time_scale, &defs[6]));
+    ERR(PF_CHECKOUT_PARAM(in_data, PARAM_CRUSH_BLACKS,
+        in_data->current_time, in_data->time_step, in_data->time_scale, &defs[7]));
+    ERR(PF_CHECKOUT_PARAM(in_data, PARAM_VIBRANCE,
+        in_data->current_time, in_data->time_step, in_data->time_scale, &defs[8]));
+    ERR(PF_CHECKOUT_PARAM(in_data, PARAM_VIBRANCE_FOCUS,
+        in_data->current_time, in_data->time_step, in_data->time_scale, &defs[9]));
 
     out_cp.amplitude       = static_cast<float>(defs[0].u.fs_d.value);
     out_cp.frequency       = static_cast<float>(defs[1].u.fs_d.value);
@@ -145,6 +161,9 @@ static PF_Err CheckoutParams(
     out_cp.colourBleed     = static_cast<float>(defs[4].u.fs_d.value);
     out_cp.canvasJitter    = static_cast<float>(defs[5].u.fs_d.value);
     out_cp.edgeBlur        = static_cast<float>(defs[6].u.fs_d.value);
+    out_cp.crushBlacks     = static_cast<float>(defs[7].u.fs_d.value);
+    out_cp.vibrance        = static_cast<float>(defs[8].u.fs_d.value);
+    out_cp.vibranceFocus   = static_cast<float>(defs[9].u.fs_d.value);
     out_cp.currentTime     = AETimeToSeconds(in_data);
     out_cp.currentFrame    = (in_data->time_step > 0)
                              ? static_cast<int>(in_data->current_time / in_data->time_step)
@@ -212,7 +231,7 @@ static PF_Err SmartRender(PF_InData* in_data, PF_OutData* out_data,
     if (!err && input_world && output_world)
     {
         // Checkout parameters
-        PF_ParamDef pdefs[7];
+        PF_ParamDef pdefs[10];
         CelluloseParams cp{};
         ERR(CheckoutParams(in_data, pdefs, cp));
 
@@ -221,8 +240,10 @@ static PF_Err SmartRender(PF_InData* in_data, PF_OutData* out_data,
             cp.width  = input_world->width;
             cp.height = input_world->height;
 
-            PF_GPU_Framework what_gpu = extra->input->what_gpu;
-
+            const PF_GPU_Framework what_gpu = extra->input->what_gpu;
+            // -----------------------------------------------------------------
+            // Dispatch to GPU or CPU renderer
+            // -----------------------------------------------------------------
             if (what_gpu != PF_GPU_Framework_NONE)
             {
                 // --- GPU path ---
@@ -242,13 +263,7 @@ static PF_Err SmartRender(PF_InData* in_data, PF_OutData* out_data,
         }
 
         // Always checkin params
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[0]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[1]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[2]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[3]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[4]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[5]));
-        ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[6]));
+        for (int i = 0; i < 10; ++i) ERR2(PF_CHECKIN_PARAM(in_data, &pdefs[i]));
     }
 
     return err;

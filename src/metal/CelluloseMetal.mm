@@ -32,6 +32,9 @@ struct MetalUniforms
     float    edgeBlur;
     float    canvasJitter;
     float    currentTime;
+    float    crushBlacks;
+    float    vibrance;
+    float    vibranceFocus;
 };
 
 // ---------------------------------------------------------------------------
@@ -148,12 +151,15 @@ PF_Err CelluloseMetal::Render(
     uniforms.edgeBlur        = cp.edgeBlur;
     uniforms.canvasJitter    = cp.canvasJitter;
     uniforms.currentTime     = cp.currentTime;
+    uniforms.crushBlacks     = cp.crushBlacks;
+    uniforms.vibrance        = cp.vibrance;
+    uniforms.vibranceFocus   = cp.vibranceFocus;
 
     id<MTLBuffer> uniformBuf = [device newBufferWithBytes:&uniforms
                                                    length:sizeof(uniforms)
                                                   options:MTLResourceStorageModeShared];
 
-    // Encode compute command
+        // Encode compute command
     id<MTLCommandBuffer>      cmdBuf  = [state.commandQueue commandBuffer];
     id<MTLComputeCommandEncoder> enc  = [cmdBuf computeCommandEncoder];
 

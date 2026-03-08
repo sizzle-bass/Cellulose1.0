@@ -155,7 +155,7 @@ endif()
 # MSVC flags
 # ---------------------------------------------------------------------------
 if(MSVC)
-    target_compile_options(Cellulose PRIVATE /W3 /MP)
+    target_compile_options(Cellulose PRIVATE /W3 /MP /EHa)
 endif()
 
 # ---------------------------------------------------------------------------

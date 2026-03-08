@@ -24,7 +24,12 @@ namespace CelluloseCUDA
 __global__ void CelluloseKernel(
     const float4* __restrict__ src,
           float4* __restrict__ dst,
-    int   width, int height,
+    int   W, int H,
     float amplitude, float frequency, float irregularity,
-    float edgeSensitivity, float colourBleed, float currentTime);
+    float edgeSensitivity, float colourBleed, float edgeBlur,
+    float currentTime,
+    float jitterX, float jitterY,
+    const float* __restrict__ segMask,  // device pointer, nullptr if unused
+    float aiInfluence,
+    int   hasMask);
 #endif

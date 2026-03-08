@@ -19,6 +19,9 @@ struct CelluloseParams
     float colourBleed;       // colour mixing        [0..1]
     float canvasJitter;      // whole-frame gate jitter, pixels
     float edgeBlur;          // defocus blur strength along edges [0..1]
+    float crushBlacks;       // shadow deepening post-process    [0..2]
+    float vibrance;          // saturation boost                 [0..2]
+    float vibranceFocus;     // protect vivid colours from boost [0..1]
     float currentTime;       // composition time, seconds
     int   currentFrame;      // frame index (current_time / time_step)
     int   bitDepth;          // 8, 16, or 32 (GPU path always 32)
